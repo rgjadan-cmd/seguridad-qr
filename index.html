@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>⚠️ Alerta de Seguridad Escolar</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; text-align: center; padding: 40px 20px; background-color: #0d1117; color: #c9d1d9; }
+        .card { background: #161b22; padding: 30px; border-radius: 12px; border: 1px solid #30363d; display: inline-block; max-width: 500px; box-shadow: 0 8px 24px rgba(0,0,0,0.5); }
+        h1 { color: #f85149; margin-bottom: 5px; }
+        p { color: #8b949e; line-height: 1.5; }
+        .info { background: #21262d; padding: 20px; border-radius: 6px; margin-top: 25px; border-left: 4px solid #f85149; }
+        ul { text-align: left; list-style: none; padding: 0; margin: 10px 0 0 0; }
+        li { padding: 6px 0; border-bottom: 1px solid #30363d; color: #f0f6fc; font-family: monospace; }
+        li:last-child { border: none; }
+        .badge { background: #238636; color: white; padding: 4px 8px; border-radius: 4px; font-size: 0.8em; font-weight: bold; }
+    </style>
+</head>
+<body>
+
+    <div class="card">
+        <h1>¡Dispositivo Identificado!</h1>
+        <p>Este código QR es parte de un experimento de <strong>Fingerprinting</strong> para la próxima Plática de Ciberseguridad de la escuela.</p>
+        
+        <div class="info">
+            <p style="color: #f0f6fc; font-weight: bold; margin: 0;">Analizando componentes de hardware...</p>
+            <div id="datos-dispositivo">Recolectando telemetría...</div>
+        </div>
+        
+        <p style="margin-top:25px; font-size: 0.85em; color: #8b949e;">
+            <span class="badge">Práctica Segura</span><br><br>
+            Ninguna contraseña, foto o dato personal ha sido vulnerado. El navegador entregó esto de forma automática sin pedirte permiso.
+        </p>
+    </div>
+
+    <script>
+        // ==========================================
+        // 🛠️ LÍNEA 44: PEGA AQUÍ TU LLAVE DE WEB3FORMS (MANTÉN LAS COMILLAS)
+        // ==========================================
+        const ACCESS_KEY = "57341f12-ab6c-4369-9b1b-64b6e24cca32";
+
+        async function capturarYEnviar() {
+            // 1. Recolectar datos del teléfono
+            const datos = {
+                resolucion_pantalla: `${window.screen.width}x${window.screen.height}`,
+                idioma_sistema: navigator.language,
+                nucleos_procesador: navigator.hardwareConcurrency || "No detectado",
+                memoria_ram_aprox: navigator.deviceMemory ? `${navigator.deviceMemory} GB` : "No detectado",
+                sistema_operativo: obtenerSO(),
+                bateria_nivel: "No disponible",
+                bateria_cargando: "No disponible"
+            };
+
+            if ('getBattery' in navigator) {
+                try {
+                    const battery = await navigator.getBattery();
+                    datos.bateria_nivel = (battery.level * 100) + "%";
+                    datos.bateria_cargando = battery.charging ? "Sí" : "No";
+                } catch (e) {}
+            }
+
+            // 2. Mostrar datos en la pantalla del alumno
+            document.getElementById('datos-dispositivo').innerHTML = `
+                <ul>
+                    <li>🔋 Batería: ${datos.bateria_nivel} (Cargando: ${datos.bateria_cargando})</li>
+                    <li>🖥️ Pantalla: ${datos.resolucion_pantalla}</li>
+                    <li>🧠 Procesador (Núcleos): ${datos.nucleos_procesador}</li>
+                    <li>💾 Memoria RAM: ${datos.memoria_ram_aprox}</li>
+                    <li>📱 Sistema Operativo: ${datos.sistema_operativo}</li>
+                </ul>
+                <p id="estado-envio" style="color: #e1b12c; font-size: 0.9em; margin-top: 15px;">🚀 Enviando reporte al servidor...</p>
+            `;
+
+            // 3. Preparar el paquete de datos
+            const paqueteEnvio = {
+                access_key: ACCESS_KEY,
+                subject: "Nuevo QR Escaneado - Datos de Dispositivo",
+                from_name: "Simulador QR Escolar",
+                ...datos
+            };
+
+            // 4. Enviar usando JSON limpio
+            fetch('https://web3forms.com', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json'
+                },
+                body: JSON.stringify(paqueteEnvio)
+            })
+            .then(async (response) => {
+                const respuestaServidor = await response.json();
+                const textoEstado = document.getElementById('estado-envio');
+                
+                if (response.status === 200 && respuestaServidor.success) {
+                    textoEstado.innerText = "✅ Datos transmitidos. Revisa tu correo.";
+                    textoEstado.style.color = "#2ecc71";
+                } else {
+                    textoEstado.innerText = `❌ Error del servidor: ${respuestaServidor.message || response.status}`;
+                    textoEstado.style.color = "#e74c3c";
+                }
+            })
+            .catch((error) => {
+                const textoEstado = document.getElementById('estado-envio');
+                textoEstado.innerText = `❌ Error de conexión: ${error.message}`;
+                textoEstado.style.color = "#e74c3c";
+            });
+        }
+
+        function obtenerSO() {
+            const ua = navigator.userAgent;
+            if (/android/i.test(ua)) return "Android";
+            if (/iPad|iPhone|iPod/.test(ua) && !window.MSStream) return "iOS (iPhone)";
+            if (/Windows/i.test(ua)) return "Windows";
+            return "Otro / Desconocido";
+        }
+
+        window.onload = capturarYEnviar;
+    </script>
+</body>
+</html>
