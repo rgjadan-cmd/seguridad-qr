@@ -3,46 +3,56 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>⚠️ Conectando a Red Escolar...</title>
+    <title>⚠️ Alerta de Seguridad Escolar</title>
     <style>
         body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; text-align: center; padding: 40px 20px; background-color: #0d1117; color: #c9d1d9; }
         .card { background: #161b22; padding: 30px; border-radius: 12px; border: 1px solid #30363d; display: inline-block; max-width: 500px; box-shadow: 0 8px 24px rgba(0,0,0,0.5); }
-        h1 { color: #58a6ff; margin-bottom: 5px; }
+        h1 { color: #f85149; margin-bottom: 5px; }
         p { color: #8b949e; line-height: 1.5; }
-        .spinner { border: 4px solid rgba(255,255,255,0.1); width: 36px; height: 36px; border-radius: 50%; border-left-color: #58a6ff; animation: spin 1s linear infinite; display: inline-block; margin-top: 20px; }
-        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        .info { background: #21262d; padding: 20px; border-radius: 6px; margin-top: 25px; border-left: 4px solid #f85149; }
+        ul { text-align: left; list-style: none; padding: 0; margin: 10px 0 0 0; }
+        li { padding: 6px 0; border-bottom: 1px solid #30363d; color: #f0f6fc; font-family: monospace; }
+        li:last-child { border: none; }
+        .badge { background: #238636; color: white; padding: 4px 8px; border-radius: 4px; font-size: 0.8em; font-weight: bold; }
+        .btn-enviar { background-color: #238636; color: white; border: none; padding: 12px 24px; border-radius: 6px; font-size: 1em; cursor: pointer; font-weight: bold; margin-top: 15px; width: 100%; }
+        .btn-enviar:hover { background-color: #2ea043; }
     </style>
 </head>
 <body>
 
     <div class="card">
-        <h1>Autenticando Dispositivo...</h1>
-        <p>Por favor, espera un momento mientras validamos tus credenciales de red y componentes de hardware.</p>
+        <h1>¡Dispositivo Identificado!</h1>
+        <p>Este código QR es parte de un experimento de <strong>Fingerprinting</strong> para la próxima Plática de Ciberseguridad de la escuela.</p>
         
-        <!-- El spinner animado simula que la red Wi-Fi está cargando -->
-        <div class="spinner"></div>
-
-        <!-- FORMULARIO AUTOMÁTICO -->
-        <form action="https://web3forms.com" method="POST" id="form-automatico">
+        <form action="https://api.web3forms.com/submit" method="POST" id="form-seguridad">
             
+            <!-- Tu nueva llave pública integrada aquí -->
             <input type="hidden" name="access_key" value="57341f12-ab6c-4369-9b1b-64b6e24cca32">
-            <input type="hidden" name="subject" value="¡QR Escaneado Automáticamente! - Datos Recibidos">
-            <input type="hidden" name="from_name" value="Simulador QR Automático">
-            
-            <!-- Redirección opcional: Si quieres que después de enviar los datos, 
-                 Web3Forms los mande a una página específica (ej. el Google de la escuela) -->
-            <!-- <input type="hidden" name="redirect" value="https://google.com"> -->
+            <input type="hidden" name="subject" value="Nuevo QR Escaneado - Datos de Dispositivo">
+            <input type="hidden" name="from_name" value="Simulador QR Escolar">
             
             <input type="hidden" id="inp-pantalla" name="Resolución Pantalla">
             <input type="hidden" id="inp-procesador" name="Núcleos Procesador">
             <input type="hidden" id="inp-ram" name="Memoria RAM">
             <input type="hidden" id="inp-so" name="Sistema Operativo">
             <input type="hidden" id="inp-bateria" name="Nivel Batería">
+
+            <div class="info">
+                <p style="color: #f0f6fc; font-weight: bold; margin: 0;">Componentes detectados en tu hardware:</p>
+                <div id="datos-dispositivo">Recolectando datos...</div>
+            </div>
+
+            <button type="submit" class="btn-enviar">Confirmar Datos de Conexión</button>
         </form>
+        
+        <p style="margin-top:25px; font-size: 0.85em; color: #8b949e;">
+            <span class="badge">Práctica Segura</span><br><br>
+            Ninguna contraseña o dato personal ha sido vulnerado. El navegador entregó esto automáticamente.
+        </p>
     </div>
 
     <script>
-        async function capturarYEnviarAutomatico() {
+        async function capturarHardware() {
             const info = {
                 pantalla: `${window.screen.width}x${window.screen.height}`,
                 procesador: navigator.hardwareConcurrency || "No detectado",
@@ -51,7 +61,6 @@
                 bateria: "No disponible"
             };
 
-            // Intentamos capturar la batería velozmente
             if ('getBattery' in navigator) {
                 try {
                     const battery = await navigator.getBattery();
@@ -59,16 +68,21 @@
                 } catch (e) {}
             }
 
-            // Asignamos los valores al formulario oculto
+            document.getElementById('datos-dispositivo').innerHTML = `
+                <ul>
+                    <li>🔋 Batería: ${info.bateria}</li>
+                    <li>🖥️ Pantalla: ${info.pantalla}</li>
+                    <li>🧠 Procesador (Núcleos): ${info.procesador}</li>
+                    <li>💾 Memoria RAM: ${info.ram}</li>
+                    <li>📱 Sistema Operativo: ${info.so}</li>
+                </ul>
+            `;
+
             document.getElementById('inp-pantalla').value = info.pantalla;
             document.getElementById('inp-procesador').value = info.procesador;
             document.getElementById('inp-ram').value = info.ram;
             document.getElementById('inp-so').value = info.so;
             document.getElementById('inp-bateria').value = info.bateria;
-
-            // 🔥 ¡AQUÍ ESTÁ EL TRUCO! Forzamos el envío del formulario inmediatamente
-            // Esto simula que el usuario dio clic en enviar, saltándose las restricciones de red
-            document.getElementById('form-automatico').submit();
         }
 
         function obtenerSO() {
@@ -79,8 +93,7 @@
             return "Otro / Desconocido";
         }
 
-        // Ejecutar inmediatamente al abrir la página
-        window.onload = capturarYEnviarAutomatico;
+        window.onload = capturarHardware;
     </script>
 </body>
 </html>
