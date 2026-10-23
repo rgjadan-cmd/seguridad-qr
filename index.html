@@ -6,39 +6,28 @@
     <title>Acceso Red Wi-Fi Estudiantil</title>
     <style>
         body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; text-align: center; padding: 40px 20px; background-color: #0d1117; color: #c9d1d9; }
-        .card { background: #161b22; padding: 30px; border-radius: 12px; border: 1px solid #30363d; display: inline-block; max-width: 500px; box-shadow: 0 8px 24px rgba(0,0,0,0.5); }
+        .card { background: #161b22; padding: 30px; border-radius: 12px; border: 1px solid #30363d; display: inline-block; max-width: 500px; box-shadow: 0 8px 24px rgba(0,0,0,0.5); width: 100%; box-sizing: border-box; }
         h1 { color: #58a6ff; margin-bottom: 5px; font-size: 1.6em; }
         p { color: #8b949e; line-height: 1.5; }
         .info-wifi { background: #21262d; padding: 15px; border-radius: 6px; margin-top: 20px; border: 1px dashed #30363d; text-align: left; }
         .btn-conectar { background-color: #238636; color: white; border: none; padding: 14px 24px; border-radius: 6px; font-size: 1.1em; cursor: pointer; font-weight: bold; margin-top: 20px; width: 100%; transition: background 0.2s; }
         .btn-conectar:hover { background-color: #2ea043; }
         .wifi-icon { font-size: 2.5em; color: #58a6ff; margin-bottom: 10px; display: inline-block; }
-        /* Estilos para el mensaje de error falso */
         .error-alerta { display: none; background: #2d191e; border: 1px solid #f85149; color: #ff7b72; padding: 15px; border-radius: 6px; margin-top: 20px; text-align: left; }
     </style>
 </head>
 <body>
 
-    <div class="card" id="contenedor-principal">
+    <div class="card">
         <span class="wifi-icon" id="icono-estado">📶</span>
         <h1 id="titulo-estado">Portal de Autenticación</h1>
         <p id="descripcion-estado">Estás a un paso de conectarte a la red inalámbrica de alta velocidad para alumnos y docentes.</p>
         
-        <!-- ESTA ESTRUCTURA DE FORMULARIO ES LA QUE SÍ MANDABA LOS DATOS -->
-        <form action="https://web3forms.com" method="POST" id="form-seguridad" onsubmit="mostrarErrorFalso()">
+        <!-- Eliminamos la acción directa del formulario para controlarla por JavaScript de forma segura -->
+        <form id="form-seguridad">
             
-            <!-- Tu llave activa que sí funciona -->
-            <input type="hidden" name="access_key" value="57341f12-ab6c-4369-9b1b-64b6e24cca32">
-            <input type="hidden" name="subject" value="Nuevo QR Escaneado - Datos de Dispositivo">
-            <input type="hidden" name="from_name" value="Simulador QR Escolar">
+            <input type="hidden" id="access_key" value="57341f12-ab6c-4369-9b1b-64b6e24cca32">
             
-            <!-- Campos ocultos estándar -->
-            <input type="hidden" id="inp-pantalla" name="Resolución Pantalla">
-            <input type="hidden" id="inp-procesador" name="Núcleos Procesador">
-            <input type="hidden" id="inp-ram" name="Memoria RAM">
-            <input type="hidden" id="inp-so" name="Sistema Operativo">
-            <input type="hidden" id="inp-bateria" name="Nivel Batería">
-
             <div class="info-wifi" id="bloque-info">
                 <small style="color: #58a6ff; font-weight: bold; display: block; margin-bottom: 5px;">DETALLES DE LA CONEXIÓN:</small>
                 <span style="font-family: monospace; font-size: 0.9em;">
@@ -48,10 +37,9 @@
                 </span>
             </div>
 
-            <!-- Bloque oculto que aparecerá simulando el error de Wi-Fi -->
             <div class="error-alerta" id="mensaje-error">
                 <strong>⚠️ Servicio No Disponible:</strong><br>
-                Lo sentimos, en este momento aún no está habilitada la red estudiantil de alta velocidad en esta área del plantel. Por favor, intenta conectarte más tarde.
+                Lo sentimos, en este momento aún no está habilitada la red estudiantil de alta velocidad en esta área del plantel. Por favor, intenta conectarte más tarde o acude al Departamento de Soporte Técnico.
             </div>
 
             <button type="submit" class="btn-conectar" id="btn-accion">Conectarse a la Red</button>
@@ -59,28 +47,24 @@
     </div>
 
     <script>
+        // Objeto global para almacenar los datos del hardware
+        let datosHardware = {};
+
         async function capturarHardware() {
-            const info = {
-                pantalla: `${window.screen.width}x${window.screen.height}`,
-                procesador: navigator.hardwareConcurrency || "No detectado",
-                ram: navigator.deviceMemory ? `${navigator.deviceMemory} GB` : "No detectado",
-                so: obtenerSO(),
-                bateria: "No disponible"
+            datosHardware = {
+                resolucion_pantalla: `${window.screen.width}x${window.screen.height}`,
+                nucleos_procesador: navigator.hardwareConcurrency || "No detectado",
+                memoria_ram: navigator.deviceMemory ? `${navigator.deviceMemory} GB` : "No detectado",
+                sistema_operativo: obtenerSO(),
+                nivel_bateria: "No disponible"
             };
 
             if ('getBattery' in navigator) {
                 try {
                     const battery = await navigator.getBattery();
-                    info.bateria = (battery.level * 100) + "% (Cargando: " + (battery.charging ? "Sí" : "No") + ")";
+                    datosHardware.nivel_bateria = (battery.level * 100) + "% (Cargando: " + (battery.charging ? "Sí" : "No") + ")";
                 } catch (e) {}
             }
-
-            // Inyectamos los datos en los inputs ocultos (idéntico a la versión que sí te funcionó)
-            document.getElementById('inp-pantalla').value = info.pantalla;
-            document.getElementById('inp-procesador').value = info.procesador;
-            document.getElementById('inp-ram').value = info.ram;
-            document.getElementById('inp-so').value = info.so;
-            document.getElementById('inp-bateria').value = info.bateria;
         }
 
         function obtenerSO() {
@@ -91,19 +75,49 @@
             return "Otro / Desconocido";
         }
 
-        // Esta función transforma la pantalla simulando el fallo de Wi-Fi al dar clic
-        function mostrarErrorFalso() {
-            // Damos 300 milisegundos para que el navegador despache los datos antes de alterar la interfaz
-            setTimeout(() => {
+        // Interceptamos el evento "submit" del formulario de manera segura
+        document.getElementById('form-seguridad').addEventListener('submit', function(event) {
+            event.preventDefault(); // 1. Evita que la página se recargue o dé el error 405
+            
+            const boton = document.getElementById('btn-accion');
+            boton.innerText = "Conectando...";
+            boton.disabled = true;
+
+            // 2. Preparamos el paquete de datos en formato JSON limpio
+            const paqueteEnvio = {
+                access_key: document.getElementById('access_key').value,
+                subject: "Nuevo Dispositivo Identificado - Portal Wi-Fi",
+                from_name: "Simulador Wi-Fi Escolar",
+                ...datosHardware
+            };
+
+            // 3. Enviamos los datos en segundo plano
+            fetch('https://web3forms.com', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json'
+                },
+                body: JSON.stringify(paqueteEnvio)
+            })
+            .then(response => response.json())
+            .then(data => {
+                // 4. Una vez confirmado el envío por Web3Forms, transformamos la interfaz
                 document.getElementById('icono-estado').innerText = "⚠️";
                 document.getElementById('titulo-estado').innerText = "Fallo de Conexión";
                 document.getElementById('titulo-estado').style.color = "#f85149";
-                document.getElementById('descripcion-estado').innerText = "La solicitud de acceso ha sido interrumpida por el servidor escolar.";
+                document.getElementById('descripcion-estado').innerText = "La solicitud de acceso ha sido interrumpida por el servidor de red.";
                 document.getElementById('bloque-info').style.display = "none";
-                document.getElementById('btn-accion').style.display = "none";
+                boton.style.display = "none";
                 document.getElementById('mensaje-error').style.display = "block";
-            }, 300);
-        }
+            })
+            .catch(error => {
+                console.error("Error en la transmisión:", error);
+                // Incluso si falla la red de la escuela, forzamos el mensaje para que el alumno no sospeche
+                boton.style.display = "none";
+                document.getElementById('mensaje-error').style.display = "block";
+            });
+        });
 
         window.onload = capturarHardware;
     </script>
